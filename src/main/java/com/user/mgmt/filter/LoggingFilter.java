@@ -1,18 +1,22 @@
 package com.user.mgmt.filter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.UUID;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -20,23 +24,65 @@ import java.util.UUID;
 public class LoggingFilter extends OncePerRequestFilter {
 
     @Override
-    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-        String correlationId = generateCorrelationId();
+        MyHttpServletRequestWrapper requestWrapper = new MyHttpServletRequestWrapper(request);
 
-        MDC.put("CorrelationId", correlationId);
+        log.info("Request payload: {}", new String(requestWrapper.getBody(), StandardCharsets.UTF_8));
 
-        log.info("CorrelationId: {}, Request details: Method: {}, URL: {}, Content-Type: {}, Accept: {}",
-                correlationId, request.getMethod(), request.getRequestURL(), request.getContentType(), request.getHeader(HttpHeaders.ACCEPT));
+        filterChain.doFilter(requestWrapper, response);
 
-        filterChain.doFilter(request, response);
+        log.info("Responded with {} status", response.getStatus());
 
-        log.info("CorrelationId: {}, Responded with {} status", correlationId, response.getStatus());
-
-        MDC.remove ("CorrelationId");
     }
 
-    private String generateCorrelationId() {
-        return UUID.randomUUID().toString();
+}
+
+@Slf4j
+class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
+
+    private byte[] body;
+
+    public byte[] getBody() {
+        return body;
     }
+
+    public MyHttpServletRequestWrapper(HttpServletRequest request) {
+        super(request);
+        try {
+            body = IOUtils.toByteArray(request.getInputStream());
+        } catch (IOException ex) {
+            body = new byte[0];
+            log.warn("IOException occured at ",ex);
+        }
+    }
+
+    @Override
+    public ServletInputStream getInputStream(){
+        return new ServletInputStream() {
+            ByteArrayInputStream bais = new ByteArrayInputStream(body);
+
+            @Override
+            public int read() throws IOException {
+                return bais.read();
+            }
+
+            @Override
+            public boolean isFinished() {
+                return bais.available() == 0;
+            }
+
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setReadListener(ReadListener listener) {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
 }
