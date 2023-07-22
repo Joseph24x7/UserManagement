@@ -1,13 +1,11 @@
 package com.user.mgmt.controller;
 
 import com.user.mgmt.model.GoogleUserEntity;
-import com.user.mgmt.request.GoogleOAuth2Request;
+import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.service.LoginService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,10 +14,16 @@ public class LoginController {
 
     private final LoginService loginService;
 
-    @PostMapping("/user-info")
-    public GoogleUserEntity saveUserInfo(@RequestBody GoogleOAuth2Request googleOAuth2Request) {
-        return loginService.saveUserInfo(googleOAuth2Request.getAccess_token());
+    @GetMapping("/user-info")
+    public GoogleUserEntity saveUserInfo(HttpServletRequest httpServletRequest) {
+        return loginService.saveUserInfo(httpServletRequest.getHeader("Authorization"), httpServletRequest.getHeader("X-Action-Type"));
+    }
+
+    @PutMapping("/update-user-info")
+    public GoogleUserEntity saveUserInfo(@RequestBody MyProfileRequest myProfileRequest) {
+        return loginService.updateUserInfo(myProfileRequest);
     }
 
 }
+
 

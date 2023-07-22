@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@Qualifier("logFilter")
 public class LoggingFilter extends OncePerRequestFilter {
 
     @Override

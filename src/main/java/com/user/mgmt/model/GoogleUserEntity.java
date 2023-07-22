@@ -34,4 +34,10 @@ public class GoogleUserEntity implements Serializable {
     @Column(name = "recent_login")
     private LocalDateTime recentLogin;
 
+    @Column(name = "mobile")
+    private String mobile;
+
+    @Column(name = "gender")
+    private String gender;
+
 }
