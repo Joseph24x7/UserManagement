@@ -1,14 +1,5 @@
 package com.user.mgmt.filter;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
@@ -17,9 +8,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
+@Order(Integer.MIN_VALUE)
 public class LoggingFilter extends OncePerRequestFilter {
 
     @Override
@@ -60,10 +60,10 @@ class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
     @Override
     public ServletInputStream getInputStream(){
         return new ServletInputStream() {
-            ByteArrayInputStream bais = new ByteArrayInputStream(body);
+            final ByteArrayInputStream bais = new ByteArrayInputStream(body);
 
             @Override
-            public int read() throws IOException {
+            public int read() {
                 return bais.read();
             }
 

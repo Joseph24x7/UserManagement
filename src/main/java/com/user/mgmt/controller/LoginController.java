@@ -16,6 +16,7 @@ public class LoginController {
 
     @GetMapping("/user-info")
     public GoogleUserEntity saveUserInfo(HttpServletRequest httpServletRequest) {
+        String email = (String) httpServletRequest.getAttribute("email");
         return loginService.saveUserInfo(httpServletRequest.getHeader("Authorization"), httpServletRequest.getHeader("X-Action-Type"));
     }
 
