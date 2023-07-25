@@ -6,20 +6,26 @@ import com.user.mgmt.model.GoogleUserEntity;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
 @Component
-public class CustomAuthenticatedEntryPoint implements AuthenticationEntryPoint {
+public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
+
+        if (request.getRequestURI().contains("update-user-info")) {
+            return true;
+        }
+
         String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         try {
@@ -38,6 +44,8 @@ public class CustomAuthenticatedEntryPoint implements AuthenticationEntryPoint {
         } catch (Exception e) {
             throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
         }
+
+        return true;
     }
 
     private GoogleUserEntity getUserInfo(String accessToken) {
@@ -50,5 +58,15 @@ public class CustomAuthenticatedEntryPoint implements AuthenticationEntryPoint {
                 .bodyToMono(GoogleUserEntity.class);
 
         return userInfoMono.block();
+    }
+
+    @Override
+    public void postHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, ModelAndView modelAndView) {
+        // Do nothing in this method
+    }
+
+    @Override
+    public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, Exception ex) {
+        // Do nothing in this method
     }
 }

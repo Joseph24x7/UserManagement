@@ -5,19 +5,20 @@ import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.service.LoginService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class LoginController {
 
     private final LoginService loginService;
 
     @GetMapping("/user-info")
     public GoogleUserEntity saveUserInfo(HttpServletRequest httpServletRequest) {
-        String email = (String) httpServletRequest.getAttribute("email");
-        return loginService.saveUserInfo(httpServletRequest.getHeader("Authorization"), httpServletRequest.getHeader("X-Action-Type"));
+        return loginService.saveUserInfo(String.valueOf(httpServletRequest.getAttribute("email")));
     }
 
     @PutMapping("/update-user-info")

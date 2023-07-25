@@ -5,8 +5,6 @@ import com.user.mgmt.repository.GoogleUserInfoRepository;
 import com.user.mgmt.request.MyProfileRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -16,13 +14,11 @@ public class LoginService {
 
     private final GoogleUserInfoRepository googleUserInfoRepository;
 
-    public GoogleUserEntity saveUserInfo(String accessToken, String actionType) {
+    public GoogleUserEntity saveUserInfo(String email) {
 
-        GoogleUserEntity userInfoFromGoogle = getUserInfo(accessToken);
+        Optional<GoogleUserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(email);
 
-        Optional<GoogleUserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(userInfoFromGoogle.getEmail());
-
-        if(optionalGoogleUserEntity.isPresent()) {
+        if (optionalGoogleUserEntity.isPresent()) {
 
             GoogleUserEntity userEntity = optionalGoogleUserEntity.get();
 
@@ -50,15 +46,4 @@ public class LoginService {
 
     }
 
-    private GoogleUserEntity getUserInfo(String accessToken) {
-
-        WebClient webClient = WebClient.create("https://www.googleapis.com/oauth2/v3/userinfo");
-
-        Mono<GoogleUserEntity> userInfoMono = webClient.get()
-                .uri(uriBuilder -> uriBuilder.queryParam("access_token", accessToken).build())
-                .retrieve()
-                .bodyToMono(GoogleUserEntity.class);
-
-        return userInfoMono.block();
-    }
 }
