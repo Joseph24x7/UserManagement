@@ -29,9 +29,9 @@ public class LoginService {
         return null;
     }
 
-    public GoogleUserEntity updateUserInfo(MyProfileRequest myProfileRequest) {
+    public GoogleUserEntity updateUserInfo(MyProfileRequest myProfileRequest, String email) {
 
-        Optional<GoogleUserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(myProfileRequest.getEmail());
+        Optional<GoogleUserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(email);
 
         if(optionalGoogleUserEntity.isPresent()) {
 

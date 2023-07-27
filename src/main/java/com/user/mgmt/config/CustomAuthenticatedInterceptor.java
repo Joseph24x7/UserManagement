@@ -23,10 +23,6 @@ public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
 
         if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
-            return true; // Allow preflight OPTIONS request to proceed without authentication
-        }
-
-        if (request.getRequestURI().contains("update-user-info")) {
             return true;
         }
 
