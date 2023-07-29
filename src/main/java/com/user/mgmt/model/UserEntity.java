@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "GOOGLE_USER_INFO", schema = "myapp")
-public class GoogleUserEntity implements Serializable {
+public class UserEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,5 +39,8 @@ public class GoogleUserEntity implements Serializable {
 
     @Column(name = "gender")
     private String gender;
+
+    @Column(name = "otp")
+    private Integer otp;
 
 }

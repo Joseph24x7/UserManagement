@@ -1,13 +1,13 @@
 package com.user.mgmt.repository;
 
-import com.user.mgmt.model.GoogleUserEntity;
+import com.user.mgmt.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface GoogleUserInfoRepository extends JpaRepository<GoogleUserEntity, Long> {
+public interface GoogleUserInfoRepository extends JpaRepository<UserEntity, Long> {
 
-    Optional<GoogleUserEntity> findByEmail(String email);
+    Optional<UserEntity> findByEmail(String email);
 
 }
 

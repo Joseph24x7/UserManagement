@@ -2,7 +2,7 @@ package com.user.mgmt.config;
 
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.exception.UnAuthorizedException;
-import com.user.mgmt.model.GoogleUserEntity;
+import com.user.mgmt.model.UserEntity;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,13 +24,16 @@ public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
 
         if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
             return true;
+        } else if (request.getRequestURI().contains("/login-with-access-code") ||
+                request.getRequestURI().contains("/verify-access-code")) {
+            return true;
         }
 
         String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         try {
             if (StringUtils.isNotBlank(accessToken)) {
-                GoogleUserEntity userInfoFromGoogle = getUserInfo(accessToken);
+                UserEntity userInfoFromGoogle = getUserInfo(accessToken);
                 if (Objects.nonNull(userInfoFromGoogle) && StringUtils.isNotBlank(userInfoFromGoogle.getEmail())) {
                     request.setAttribute("email", userInfoFromGoogle.getEmail());
                 } else {
@@ -48,14 +51,14 @@ public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    private GoogleUserEntity getUserInfo(String accessToken) {
+    private UserEntity getUserInfo(String accessToken) {
 
         WebClient webClient = WebClient.create("https://www.googleapis.com/oauth2/v3/userinfo");
 
-        Mono<GoogleUserEntity> userInfoMono = webClient.get()
+        Mono<UserEntity> userInfoMono = webClient.get()
                 .uri(uriBuilder -> uriBuilder.queryParam("access_token", accessToken).build())
                 .retrieve()
-                .bodyToMono(GoogleUserEntity.class);
+                .bodyToMono(UserEntity.class);
 
         return userInfoMono.block();
     }
