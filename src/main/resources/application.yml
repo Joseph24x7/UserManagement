@@ -1,6 +1,7 @@
 server:
   port: 8082
-
+properties:
+  secret-key: ${secret-key:}
 spring:
   mail:
     host: ${mail.host:}

@@ -1,23 +1,28 @@
-package com.user.mgmt.config;
+package com.user.mgmt.interceptor;
 
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.exception.UnAuthorizedException;
 import com.user.mgmt.model.UserEntity;
+import com.user.mgmt.service.GoogleAuthService;
+import com.user.mgmt.util.TokenUtil;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
+
+    private final GoogleAuthService googleAuthService;
+    private final TokenUtil tokenUtil;
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
@@ -33,11 +38,20 @@ public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
 
         try {
             if (StringUtils.isNotBlank(accessToken)) {
-                UserEntity userInfoFromGoogle = getUserInfo(accessToken);
-                if (Objects.nonNull(userInfoFromGoogle) && StringUtils.isNotBlank(userInfoFromGoogle.getEmail())) {
-                    request.setAttribute("email", userInfoFromGoogle.getEmail());
-                } else {
-                    throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
+                try {
+                    UserEntity userInfoFromGoogle = googleAuthService.getUserInfo(accessToken);
+                    if (Objects.nonNull(userInfoFromGoogle) && StringUtils.isNotBlank(userInfoFromGoogle.getEmail())) {
+                        request.setAttribute("email", userInfoFromGoogle.getEmail());
+                    } else {
+                        throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
+                    }
+                } catch (Exception e) {
+                    String email = tokenUtil.extractUsername(accessToken);
+                    if (StringUtils.isNotBlank(email)) {
+                        request.setAttribute("email", email);
+                    } else {
+                        throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
+                    }
                 }
             } else {
                 throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_REQUIRED);
@@ -49,18 +63,6 @@ public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
         }
 
         return true;
-    }
-
-    private UserEntity getUserInfo(String accessToken) {
-
-        WebClient webClient = WebClient.create("https://www.googleapis.com/oauth2/v3/userinfo");
-
-        Mono<UserEntity> userInfoMono = webClient.get()
-                .uri(uriBuilder -> uriBuilder.queryParam("access_token", accessToken).build())
-                .retrieve()
-                .bodyToMono(UserEntity.class);
-
-        return userInfoMono.block();
     }
 
     @Override

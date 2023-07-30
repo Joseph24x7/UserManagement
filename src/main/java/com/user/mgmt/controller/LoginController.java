@@ -1,10 +1,12 @@
 package com.user.mgmt.controller;
 
+import com.user.mgmt.util.CommonUtil;
 import com.user.mgmt.model.UserEntity;
 import com.user.mgmt.request.LoginWithEmailRequest;
 import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.service.LoginService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +18,12 @@ public class LoginController {
 
     @GetMapping("/user-info")
     public UserEntity saveUserInfo(HttpServletRequest httpServletRequest) {
-        return loginService.saveUserInfo(String.valueOf(httpServletRequest.getAttribute("email")));
+        return loginService.saveUserInfo(String.valueOf(httpServletRequest.getAttribute("email")), CommonUtil.LOGIN_WITH_GOOGLE_OAUTH_2);
+    }
+
+    @PostMapping("/login-with-access-code")
+    public void loginWithAccessCode(@RequestBody @Valid LoginWithEmailRequest emailRequest) {
+        loginService.saveUserInfo(emailRequest.getEmail(), CommonUtil.LOGIN_WITH_ACCESS_CODE);
     }
 
     @PutMapping("/update-user-info")
@@ -24,13 +31,9 @@ public class LoginController {
         return loginService.updateUserInfo(myProfileRequest, String.valueOf(httpServletRequest.getAttribute("email")));
     }
 
-    @PostMapping("/login-with-access-code")
-    public void loginWithAccessCode(@RequestBody LoginWithEmailRequest emailRequest) {
-        loginService.loginWithAccessCode(emailRequest.getEmail());
-    }
 
     @PostMapping("/verify-access-code")
-    public String verifyAccessCode(@RequestBody LoginWithEmailRequest emailRequest) {
+    public String verifyAccessCode(@RequestBody @Valid LoginWithEmailRequest emailRequest) {
         return loginService.verifyAccessCode(emailRequest);
     }
 

@@ -1,5 +1,6 @@
 package com.user.mgmt.config;
 
+import com.user.mgmt.interceptor.CustomAuthenticatedInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
