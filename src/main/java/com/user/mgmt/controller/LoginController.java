@@ -27,7 +27,7 @@ public class LoginController {
     }
 
     @PutMapping("/update-user-info")
-    public UserEntity saveUserInfo(@RequestBody MyProfileRequest myProfileRequest, HttpServletRequest httpServletRequest) {
+    public UserEntity saveUserInfo(@RequestBody @Valid MyProfileRequest myProfileRequest, HttpServletRequest httpServletRequest) {
         return loginService.updateUserInfo(myProfileRequest, String.valueOf(httpServletRequest.getAttribute("email")));
     }
 
