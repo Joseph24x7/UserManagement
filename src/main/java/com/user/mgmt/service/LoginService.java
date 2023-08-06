@@ -32,7 +32,6 @@ public class LoginService {
         UserEntity userEntity;
         if (optionalGoogleUserEntity.isPresent()) {
             userEntity = optionalGoogleUserEntity.get();
-            userEntity.setRecentLogin(LocalDateTime.now());
         } else {
             userEntity = new UserEntity();
             userEntity.setEmail(email);
@@ -44,6 +43,7 @@ public class LoginService {
             emailService.sendOtpEmail(email, userEntity.getOtp());
         }
 
+        userEntity.setRecentLogin(LocalDateTime.now());
         return googleUserInfoRepository.save(userEntity);
 
     }

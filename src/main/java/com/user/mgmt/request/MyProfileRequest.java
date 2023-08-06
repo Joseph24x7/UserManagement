@@ -9,8 +9,6 @@ import lombok.Data;
 @Data
 public class MyProfileRequest {
 
-    private Long userId;
-
     @Size(max = 100, message = "Name cannot be longer than 100 characters")
     private String name;
 

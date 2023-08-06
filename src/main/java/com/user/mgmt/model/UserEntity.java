@@ -47,7 +47,7 @@ public class UserEntity implements Serializable {
     private String addressLine2;
 
     @Column(name = "postal_code")
-    private Integer postalCode;
+    private String postalCode;
 
     @Column(name = "city")
     private String city;
