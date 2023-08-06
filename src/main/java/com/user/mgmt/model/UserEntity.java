@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "GOOGLE_USER_INFO", schema = "myapp")
+@Table(name = "USER_INFO", schema = "myapp")
 public class UserEntity implements Serializable {
 
     @Id
@@ -25,9 +25,6 @@ public class UserEntity implements Serializable {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "email_verified")
-    private boolean emailVerified;
-
     @Column(name = "registered_on")
     private LocalDateTime registeredOn;
 
@@ -42,5 +39,23 @@ public class UserEntity implements Serializable {
 
     @Column(name = "otp")
     private Integer otp;
+
+    @Column(name = "address_line1")
+    private String addressLine1;
+
+    @Column(name = "address_line2")
+    private String addressLine2;
+
+    @Column(name = "postal_code")
+    private Integer postalCode;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "state")
+    private String state;
+
+    @Column(name = "landmark")
+    private String landmark;
 
 }

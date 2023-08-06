@@ -1,16 +1,18 @@
 package com.user.mgmt.service;
 
-import com.user.mgmt.util.CommonUtil;
-import com.user.mgmt.util.TokenUtil;
 import com.user.mgmt.exception.BadRequestException;
 import com.user.mgmt.exception.ErrorEnums;
+import com.user.mgmt.mapper.MyProfileMapper;
 import com.user.mgmt.model.UserEntity;
 import com.user.mgmt.repository.GoogleUserInfoRepository;
 import com.user.mgmt.request.LoginWithEmailRequest;
 import com.user.mgmt.request.MyProfileRequest;
+import com.user.mgmt.util.CommonUtil;
+import com.user.mgmt.util.TokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
@@ -21,6 +23,7 @@ public class LoginService {
     private final GoogleUserInfoRepository googleUserInfoRepository;
     private final EmailService emailService;
     private final TokenUtil tokenUtil;
+    private final MyProfileMapper myProfileMapper = MyProfileMapper.INSTANCE;
 
     public UserEntity saveUserInfo(String email, String actionType) {
 
@@ -29,9 +32,11 @@ public class LoginService {
         UserEntity userEntity;
         if (optionalGoogleUserEntity.isPresent()) {
             userEntity = optionalGoogleUserEntity.get();
+            userEntity.setRecentLogin(LocalDateTime.now());
         } else {
             userEntity = new UserEntity();
             userEntity.setEmail(email);
+            userEntity.setRegisteredOn(LocalDateTime.now());
         }
 
         if (CommonUtil.LOGIN_WITH_ACCESS_CODE.equalsIgnoreCase(actionType)) {
@@ -46,19 +51,14 @@ public class LoginService {
     public UserEntity updateUserInfo(MyProfileRequest myProfileRequest, String email) {
 
         Optional<UserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(email);
+
         if (optionalGoogleUserEntity.isPresent()) {
-
             UserEntity userEntity = optionalGoogleUserEntity.get();
-            userEntity.setName(myProfileRequest.getName());
-            userEntity.setUsername(myProfileRequest.getUsername());
-            userEntity.setMobile(myProfileRequest.getMobile());
-            userEntity.setGender(myProfileRequest.getGender());
+            myProfileMapper.updateUserEntity(myProfileRequest, userEntity);
             return googleUserInfoRepository.save(userEntity);
-
         } else {
             throw new BadRequestException(ErrorEnums.USER_NOT_FOUND);
         }
-
 
     }
 
