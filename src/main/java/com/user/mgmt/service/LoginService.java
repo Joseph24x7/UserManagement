@@ -3,7 +3,7 @@ package com.user.mgmt.service;
 import com.user.mgmt.exception.BadRequestException;
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.mapper.MyProfileMapper;
-import com.user.mgmt.model.UserEntity;
+import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.repository.GoogleUserInfoRepository;
 import com.user.mgmt.request.LoginWithEmailRequest;
 import com.user.mgmt.request.MyProfileRequest;

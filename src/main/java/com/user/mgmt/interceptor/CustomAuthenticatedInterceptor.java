@@ -2,7 +2,7 @@ package com.user.mgmt.interceptor;
 
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.exception.UnAuthorizedException;
-import com.user.mgmt.model.UserEntity;
+import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.service.GoogleAuthService;
 import com.user.mgmt.util.TokenUtil;
 import io.micrometer.common.util.StringUtils;
@@ -17,7 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Objects;
 
-@Component
+/*@Component
 @RequiredArgsConstructor
 public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
 
@@ -74,4 +74,4 @@ public class CustomAuthenticatedInterceptor implements HandlerInterceptor {
     public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, Exception ex) {
         // Do nothing in this method
     }
-}
+}*/

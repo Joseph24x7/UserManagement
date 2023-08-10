@@ -1,17 +1,27 @@
 package com.user.mgmt.config;
 
-import com.user.mgmt.interceptor.CustomAuthenticatedInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@EnableWebMvc
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final CustomAuthenticatedInterceptor customAuthenticatedInterceptor;
+    @Value("${spring.security.user.name}")
+    private String username;
+
+    @Value("${spring.security.user.password}")
+    private String password;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -21,9 +31,15 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(customAuthenticatedInterceptor);
+    @Bean
+    public InMemoryUserDetailsManager userDetailsManager(BCryptPasswordEncoder passwordEncoder) {
+        UserDetails userDetails = User.withUsername(username).password(passwordEncoder.encode(password)).roles("ADMIN").build();
+        return new InMemoryUserDetailsManager(userDetails);
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }

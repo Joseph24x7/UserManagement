@@ -1,6 +1,6 @@
 package com.user.mgmt.mapper;
 
-import com.user.mgmt.model.UserEntity;
+import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.request.MyProfileRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

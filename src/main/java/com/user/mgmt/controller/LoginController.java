@@ -1,7 +1,7 @@
 package com.user.mgmt.controller;
 
 import com.user.mgmt.util.CommonUtil;
-import com.user.mgmt.model.UserEntity;
+import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.request.LoginWithEmailRequest;
 import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.service.LoginService;

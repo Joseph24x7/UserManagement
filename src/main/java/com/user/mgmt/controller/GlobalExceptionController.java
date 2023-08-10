@@ -39,7 +39,7 @@ public class GlobalExceptionController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(Exception exception) {
         log.error("Exception occurred: ", exception);
-        return populateException(ErrorEnums.GENERAL_EXCEPTION);
+        return populateException(ErrorEnums.GENERAL_EXCEPTION.getErrorCode(), exception.getMessage());
     }
 
     @ExceptionHandler({ConstraintViolationException.class, MethodArgumentNotValidException.class})

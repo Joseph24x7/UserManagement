@@ -1,6 +1,6 @@
 package com.user.mgmt.service;
 
-import com.user.mgmt.model.UserEntity;
+import com.user.mgmt.entity.UserEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;

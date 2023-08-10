@@ -21,7 +21,7 @@ public class EmailService {
                 + ".\n\n" + "Please enter this OTP to proceed with your login.\n\n" + "Thank you for choosing us.\n\n"
                 + "Warm Regards,\n" + "Book My Gift Team");
 
-        javaMailSender.send(mailMessage);
+        //javaMailSender.send(mailMessage);
     }
 
 }

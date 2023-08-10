@@ -3,6 +3,10 @@ server:
 properties:
   secret-key: ${secret-key:}
 spring:
+  security:
+    user:
+      name: secret_token
+      password: stagingnslfjbljbfjbfhgjdklsRYEWSHJ32UUpuujKn
   mail:
     host: ${mail.host:}
     port: ${mail.port:}
