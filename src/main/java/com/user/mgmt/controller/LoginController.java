@@ -1,10 +1,10 @@
 package com.user.mgmt.controller;
 
-import com.user.mgmt.util.CommonUtil;
 import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.request.LoginWithEmailRequest;
 import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.service.LoginService;
+import com.user.mgmt.util.CommonUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,3 +38,4 @@ public class LoginController {
     }
 
 }
+

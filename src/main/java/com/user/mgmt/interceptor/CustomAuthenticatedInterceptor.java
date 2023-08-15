@@ -1,3 +1,4 @@
+/*
 package com.user.mgmt.interceptor;
 
 import com.user.mgmt.exception.ErrorEnums;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Objects;
 
+*/
 /*@Component
 @RequiredArgsConstructor
 public class CustomAuthenticatedInterceptor implements HandlerInterceptor {

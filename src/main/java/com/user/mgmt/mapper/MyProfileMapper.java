@@ -14,4 +14,5 @@ public interface MyProfileMapper {
 
     @Mapping( target = "UserEntity.email", ignore = true )
     void updateUserEntity(MyProfileRequest request, @MappingTarget UserEntity userEntity);
+
 }

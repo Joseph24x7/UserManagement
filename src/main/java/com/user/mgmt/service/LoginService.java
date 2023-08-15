@@ -1,10 +1,10 @@
 package com.user.mgmt.service;
 
+import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.exception.BadRequestException;
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.mapper.MyProfileMapper;
-import com.user.mgmt.entity.UserEntity;
-import com.user.mgmt.repository.GoogleUserInfoRepository;
+import com.user.mgmt.repository.UserInfoRepository;
 import com.user.mgmt.request.LoginWithEmailRequest;
 import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.util.CommonUtil;
@@ -20,14 +20,14 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class LoginService {
 
-    private final GoogleUserInfoRepository googleUserInfoRepository;
+    private final UserInfoRepository userInfoRepository;
     private final EmailService emailService;
     private final TokenUtil tokenUtil;
     private final MyProfileMapper myProfileMapper = MyProfileMapper.INSTANCE;
 
     public UserEntity saveUserInfo(String email, String actionType) {
 
-        Optional<UserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(email);
+        Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(email);
 
         UserEntity userEntity;
         if (optionalGoogleUserEntity.isPresent()) {
@@ -44,18 +44,18 @@ public class LoginService {
         }
 
         userEntity.setRecentLogin(LocalDateTime.now());
-        return googleUserInfoRepository.save(userEntity);
+        return userInfoRepository.save(userEntity);
 
     }
 
     public UserEntity updateUserInfo(MyProfileRequest myProfileRequest, String email) {
 
-        Optional<UserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(email);
+        Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(email);
 
         if (optionalGoogleUserEntity.isPresent()) {
             UserEntity userEntity = optionalGoogleUserEntity.get();
             myProfileMapper.updateUserEntity(myProfileRequest, userEntity);
-            return googleUserInfoRepository.save(userEntity);
+            return userInfoRepository.save(userEntity);
         } else {
             throw new BadRequestException(ErrorEnums.USER_NOT_FOUND);
         }
@@ -63,7 +63,7 @@ public class LoginService {
     }
 
     public String verifyAccessCode(LoginWithEmailRequest emailRequest) {
-        Optional<UserEntity> optionalGoogleUserEntity = googleUserInfoRepository.findByEmail(emailRequest.getEmail());
+        Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(emailRequest.getEmail());
         if (optionalGoogleUserEntity.isPresent()) {
             UserEntity userEntity = optionalGoogleUserEntity.get();
             if (userEntity.getOtp().equals(emailRequest.getAccessCode())) {

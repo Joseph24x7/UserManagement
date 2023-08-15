@@ -43,4 +43,5 @@ public class MyProfileRequest {
 
     @Size(max = 100, message = "Landmark cannot be longer than 100 characters")
     private String landmark;
+
 }
