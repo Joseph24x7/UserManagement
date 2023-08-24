@@ -1,6 +1,18 @@
 version: '3'
 services:
-
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: myuser
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
   redis:
     image: redis:7.0.11
     ports:
