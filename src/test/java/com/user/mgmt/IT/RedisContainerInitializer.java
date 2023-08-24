@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 public interface RedisContainerInitializer {
 
-    static final Map<String, Supplier<Object>> DYNAMIC_PROPERTIES = IntegrationTestBase.Initializer.initialize();
+    Map<String, Supplier<Object>> DYNAMIC_PROPERTIES = IntegrationTestBase.Initializer.initialize();
 
     @DynamicPropertySource
     static void dynamicProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {

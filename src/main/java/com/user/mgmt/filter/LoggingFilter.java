@@ -7,6 +7,7 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.annotation.Order;
@@ -14,8 +15,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.ByteArrayInputStream;
+import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -27,12 +33,15 @@ public class LoggingFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         MyHttpServletRequestWrapper requestWrapper = new MyHttpServletRequestWrapper(request);
+        MyHttpServletResponseWrapper responseWrapper = new MyHttpServletResponseWrapper(response);
 
+        log.info("Request headers: {}", requestWrapper.getHeadersAsMap());
         log.info("Request payload: {}", new String(requestWrapper.getBody(), StandardCharsets.UTF_8));
 
-        filterChain.doFilter(requestWrapper, response);
+        filterChain.doFilter(requestWrapper, responseWrapper);
 
-        log.info("Responded with {} status", response.getStatus());
+        log.info("Response status: {}", responseWrapper.getStatus());
+        log.info("Response payload: {}", new String(responseWrapper.getCapturedResponseData(), StandardCharsets.UTF_8));
 
     }
 
@@ -53,9 +62,20 @@ class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
             body = IOUtils.toByteArray(request.getInputStream());
         } catch (IOException ex) {
             body = new byte[0];
-            log.warn("IOException occured at ",ex);
+            log.warn("IOException occurred at ",ex);
         }
     }
+
+    public Map<String, String> getHeadersAsMap() {
+        Map<String, String> headersMap = new HashMap<>();
+        Enumeration<String> headerNames = getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            headersMap.put(headerName, getHeader(headerName));
+        }
+        return headersMap;
+    }
+
 
     @Override
     public ServletInputStream getInputStream(){
@@ -84,4 +104,35 @@ class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
         };
     }
 
+}
+
+@Slf4j
+class MyHttpServletResponseWrapper extends HttpServletResponseWrapper {
+
+    private final CharArrayWriter charArrayWriter = new CharArrayWriter();
+    private final PrintWriter writer = new PrintWriter(charArrayWriter);
+
+    public MyHttpServletResponseWrapper(HttpServletResponse response) {
+        super(response);
+    }
+
+    @Override
+    public PrintWriter getWriter() {
+        return writer;
+    }
+
+    @Override
+    public void setContentLength(int len) {
+        // Ignore setContentLength to prevent response truncation
+    }
+
+    @Override
+    public void setContentLengthLong(long len) {
+        // Ignore setContentLength to prevent response truncation
+    }
+
+    public byte[] getCapturedResponseData() {
+        writer.flush();
+        return charArrayWriter.toString().getBytes(StandardCharsets.UTF_8);
+    }
 }
