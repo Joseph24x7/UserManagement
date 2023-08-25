@@ -1,5 +1,6 @@
 package com.user.mgmt.config;
 
+import com.user.mgmt.filter.TokenAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

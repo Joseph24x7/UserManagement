@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class RedisControllerIT implements RedisContainerInitializer {
+class RedisControllerIT extends IntegrationTestBase {
 
     @Autowired
     private TestRestTemplate restTemplate;

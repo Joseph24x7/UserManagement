@@ -59,22 +59,15 @@ public class LoginService {
         } else {
             throw new BadRequestException(ErrorEnums.USER_NOT_FOUND);
         }
-
     }
 
     public String verifyAccessCode(LoginWithEmailRequest emailRequest) {
-        Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(emailRequest.getEmail());
-        if (optionalGoogleUserEntity.isPresent()) {
-            UserEntity userEntity = optionalGoogleUserEntity.get();
-            if (userEntity.getOtp().equals(emailRequest.getAccessCode())) {
-                return tokenUtil.generateToken(optionalGoogleUserEntity.get());
-            } else {
-                throw new BadRequestException(ErrorEnums.INVALID_ACCESS_CODE);
-            }
+        UserEntity userEntity = userInfoRepository.findByEmail(emailRequest.getEmail()).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
+        if (userEntity.getOtp().equals(emailRequest.getAccessCode())) {
+            return tokenUtil.generateToken(userEntity);
         } else {
-            throw new BadRequestException(ErrorEnums.USER_NOT_FOUND);
+            throw new BadRequestException(ErrorEnums.INVALID_ACCESS_CODE);
         }
-
     }
 
     private Integer generateTwoFaCode() {

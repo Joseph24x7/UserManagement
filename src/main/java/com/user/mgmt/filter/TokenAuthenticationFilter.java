@@ -1,4 +1,4 @@
-package com.user.mgmt.config;
+package com.user.mgmt.filter;
 
 import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.exception.ErrorEnums;
