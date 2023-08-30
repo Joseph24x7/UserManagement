@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -35,47 +34,64 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final UserInfoRepository userInfoRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-
-        UserDetails userDetails;
-        UsernamePasswordAuthenticationToken authenticationToken;
-
-        if (request.getMethod().equalsIgnoreCase("OPTIONS") || (request.getRequestURI().contains("/login-with-access-code") || request.getRequestURI().contains("/verify-access-code")) || request.getRequestURI().contains("/redis")) {
-            userDetails = userDetailsManager.loadUserByUsername("username");
-            authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        if (isPreflightRequest(request) || isAccessCodeRequest(request)) {
+            handleSpecialRequests(request);
         } else {
-
-            String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-            UserEntity userEntity;
-            if (StringUtils.isNotBlank(accessToken)) {
-                try {
-                    userEntity = googleAuthService.getUserInfo(accessToken);
-                    if (Objects.nonNull(userEntity) && StringUtils.isNotBlank(userEntity.getEmail())) {
-                        request.setAttribute("email", userEntity.getEmail());
-
-                    } else {
-                        throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
-                    }
-                } catch (Exception e) {
-                    String email = tokenUtil.extractUsername(accessToken);
-                    if (StringUtils.isNotBlank(email)) {
-                        request.setAttribute("email", email);
-                        userEntity = userInfoRepository.findByEmail(email).orElseThrow(() -> new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED));
-                    } else {
-                        throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
-                    }
-                }
-            } else {
-                throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_REQUIRED);
-            }
-
-            authenticationToken = new UsernamePasswordAuthenticationToken(userEntity, userEntity.getPassword(), userEntity.getAuthorities());
+            handleAuthenticatedRequests(request);
         }
-
-        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         filterChain.doFilter(request, response);
-
     }
 
+    private boolean isPreflightRequest(HttpServletRequest request) {
+        return "OPTIONS".equalsIgnoreCase(request.getMethod());
+    }
+
+    private boolean isAccessCodeRequest(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.contains("/login-with-access-code") || uri.contains("/verify-access-code") || uri.contains("/redis");
+    }
+
+    private void handleSpecialRequests(HttpServletRequest request) {
+        UserDetails userDetails = userDetailsManager.loadUserByUsername("username");
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+        authenticateAndSetContext(request, authenticationToken);
+    }
+
+    private void handleAuthenticatedRequests(HttpServletRequest request) {
+        String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.isBlank(accessToken)) {
+            throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_REQUIRED);
+        }
+
+        UserEntity userEntity = getUserEntityFromToken(accessToken, request);
+        authenticateAndSetContext(request, new UsernamePasswordAuthenticationToken(userEntity, userEntity.getPassword(), userEntity.getAuthorities()));
+    }
+
+    private UserEntity getUserEntityFromToken(String accessToken, HttpServletRequest request) {
+        UserEntity userEntity;
+        request.setAttribute("role", request.getHeader("X-BookMyGift-Role"));
+        try {
+            userEntity = googleAuthService.getUserInfo(accessToken);
+            if (userEntity != null && StringUtils.isNotBlank(userEntity.getEmail())) {
+                request.setAttribute("email", userEntity.getEmail());
+            } else {
+                throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
+            }
+        } catch (Exception e) {
+            String email = tokenUtil.extractUsername(accessToken);
+            if (StringUtils.isNotBlank(email)) {
+                request.setAttribute("email", email);
+                userEntity = userInfoRepository.findByEmail(email).orElseThrow(() -> new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED));
+            } else {
+                throw new UnAuthorizedException(ErrorEnums.AUTHORIZATION_FAILED);
+            }
+        }
+        return userEntity;
+    }
+
+    private void authenticateAndSetContext(HttpServletRequest request, UsernamePasswordAuthenticationToken authenticationToken) {
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+    }
 }

@@ -5,10 +5,12 @@ import com.user.mgmt.exception.BadRequestException;
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.mapper.MyProfileMapper;
 import com.user.mgmt.repository.UserInfoRepository;
-import com.user.mgmt.request.LoginWithEmailRequest;
+import com.user.mgmt.request.LoginRequest;
 import com.user.mgmt.request.MyProfileRequest;
+import com.user.mgmt.request.VerifyEmailRequest;
 import com.user.mgmt.util.CommonUtil;
 import com.user.mgmt.util.TokenUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +27,9 @@ public class LoginService {
     private final TokenUtil tokenUtil;
     private final MyProfileMapper myProfileMapper = MyProfileMapper.INSTANCE;
 
-    public UserEntity saveUserInfo(String email, String actionType) {
+    public UserEntity saveUserInfo(@Valid LoginRequest loginRequest, String actionType) {
 
+        String email = loginRequest.getEmail();
         Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(email);
 
         UserEntity userEntity;
@@ -35,6 +38,7 @@ public class LoginService {
         } else {
             userEntity = new UserEntity();
             userEntity.setEmail(email);
+            userEntity.setRole(loginRequest.getRole());
             userEntity.setRegisteredOn(LocalDateTime.now());
         }
 
@@ -61,9 +65,9 @@ public class LoginService {
         }
     }
 
-    public String verifyAccessCode(LoginWithEmailRequest emailRequest) {
+    public String verifyAccessCode(VerifyEmailRequest emailRequest) {
         UserEntity userEntity = userInfoRepository.findByEmail(emailRequest.getEmail()).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
-        if (userEntity.getOtp().equals(emailRequest.getAccessCode())) {
+        if (String.valueOf(userEntity.getOtp()).equals(emailRequest.getAccessCode())) {
             return tokenUtil.generateToken(userEntity);
         } else {
             throw new BadRequestException(ErrorEnums.INVALID_ACCESS_CODE);

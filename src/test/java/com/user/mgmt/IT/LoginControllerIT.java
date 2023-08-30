@@ -4,37 +4,45 @@ import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.exception.BadRequestException;
 import com.user.mgmt.exception.ErrorEnums;
 import com.user.mgmt.repository.UserInfoRepository;
-import com.user.mgmt.request.LoginWithEmailRequest;
+import com.user.mgmt.request.LoginRequest;
 import com.user.mgmt.request.MyProfileRequest;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import com.user.mgmt.request.VerifyEmailRequest;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class LoginControllerIT extends IntegrationTestBase {
 
-    private static final LoginWithEmailRequest emailRequest = new LoginWithEmailRequest();
-    private static final HttpHeaders httpHeaders = new HttpHeaders();
-    private static ResponseEntity<String> verifyResponse;
-    private static UserEntity userEntity;
     @Autowired
     private TestRestTemplate restTemplate;
+
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    private static final String TEST_EMAIL = "abc@gmail.com";
+    private static final String TEST_ROLE = "seller";
+
+    private static UserEntity userEntity;
+    private static HttpHeaders httpHeaders;
+    private static ResponseEntity<String> verifyResponse;
+
+    @BeforeAll
+    public static void setupClass() {
+        httpHeaders = new HttpHeaders();
+    }
 
     @Test
     @Order(0)
     public void testLoginWithAccessCode() {
-        emailRequest.setEmail("abc@gmail.com");
+        LoginRequest emailRequest = new LoginRequest();
+        emailRequest.setEmail(TEST_EMAIL);
+        emailRequest.setRole(TEST_ROLE);
+
         ResponseEntity<String> createResponse = restTemplate.postForEntity("/login-with-access-code", emailRequest, String.class);
         assertEquals(HttpStatus.OK, createResponse.getStatusCode());
     }
@@ -42,10 +50,13 @@ public class LoginControllerIT extends IntegrationTestBase {
     @Test
     @Order(1)
     public void testVerifyAccessCode() {
-        userEntity = userInfoRepository.findByEmail(emailRequest.getEmail()).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
+        userEntity = userInfoRepository.findByEmail(TEST_EMAIL).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
 
-        emailRequest.setAccessCode(userEntity.getOtp());
-        verifyResponse = restTemplate.postForEntity("/verify-access-code", emailRequest, String.class);
+        VerifyEmailRequest verifyRequest = new VerifyEmailRequest();
+        verifyRequest.setEmail(TEST_EMAIL);
+        verifyRequest.setAccessCode(String.valueOf(userEntity.getOtp()));
+
+        verifyResponse = restTemplate.postForEntity("/verify-access-code", verifyRequest, String.class);
         assertEquals(HttpStatus.OK, verifyResponse.getStatusCode());
         assertNotNull(verifyResponse.getBody());
     }
@@ -53,8 +64,9 @@ public class LoginControllerIT extends IntegrationTestBase {
     @Test
     @Order(2)
     public void testUserInfo() {
-
         httpHeaders.add(HttpHeaders.AUTHORIZATION, verifyResponse.getBody());
+        httpHeaders.add("X-BookMyGift-Role", TEST_ROLE);
+
         HttpEntity<?> userInfoEntity = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> userInfoResponse = restTemplate.exchange("/user-info", HttpMethod.GET, userInfoEntity, String.class);
         assertEquals(HttpStatus.OK, userInfoResponse.getStatusCode());
@@ -67,12 +79,12 @@ public class LoginControllerIT extends IntegrationTestBase {
         myProfileRequest.setEmail(userEntity.getEmail());
         myProfileRequest.setCity("Chennai");
         myProfileRequest.setUsername("Joseph123");
+
         HttpEntity<?> updateInfoEntity = new HttpEntity<>(myProfileRequest, httpHeaders);
         ResponseEntity<UserEntity> updateEntityResponse = restTemplate.exchange("/update-user-info", HttpMethod.PUT, updateInfoEntity, UserEntity.class);
 
-        userEntity = userInfoRepository.findByEmail(emailRequest.getEmail()).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
+        userEntity = userInfoRepository.findByEmail(TEST_EMAIL).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
         assertEquals(HttpStatus.OK, updateEntityResponse.getStatusCode());
         assertEquals(userEntity, updateEntityResponse.getBody());
     }
-
 }

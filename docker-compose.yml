@@ -13,7 +13,28 @@ services:
       - ./data:/var/lib/postgresql/data
     networks:
       - mynetwork
+
   redis:
     image: redis:7.0.11
     ports:
       - '6379:6379'
+    networks:
+      - mynetwork
+
+  configserver:
+    container_name: configserver
+    image: joseph24x7/configserver:latest
+    ports:
+      - 8888:8888
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/myuser
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: mypassword
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge

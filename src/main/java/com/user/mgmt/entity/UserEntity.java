@@ -28,6 +28,9 @@ public class UserEntity implements Serializable, UserDetails {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "role")
+    private String role;
+
     @Column(name = "registered_on")
     private LocalDateTime registeredOn;
 
