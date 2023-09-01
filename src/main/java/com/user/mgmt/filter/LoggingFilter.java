@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.annotation.Order;
@@ -29,7 +31,7 @@ import java.util.Map;
 public class LoggingFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         MyHttpServletRequestWrapper requestWrapper = new MyHttpServletRequestWrapper(request);
@@ -48,13 +50,10 @@ public class LoggingFilter extends OncePerRequestFilter {
 }
 
 @Slf4j
+@Getter
 class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     private byte[] body;
-
-    public byte[] getBody() {
-        return body;
-    }
 
     public MyHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
@@ -62,7 +61,7 @@ class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
             body = IOUtils.toByteArray(request.getInputStream());
         } catch (IOException ex) {
             body = new byte[0];
-            log.warn("IOException occurred at ",ex);
+            log.warn("IOException occurred at ", ex);
         }
     }
 
@@ -78,18 +77,18 @@ class MyHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
 
     @Override
-    public ServletInputStream getInputStream(){
+    public ServletInputStream getInputStream() {
         return new ServletInputStream() {
-            final ByteArrayInputStream bais = new ByteArrayInputStream(body);
+            final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(body);
 
             @Override
             public int read() {
-                return bais.read();
+                return byteArrayInputStream.read();
             }
 
             @Override
             public boolean isFinished() {
-                return bais.available() == 0;
+                return byteArrayInputStream.available() == 0;
             }
 
             @Override

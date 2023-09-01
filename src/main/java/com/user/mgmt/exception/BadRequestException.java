@@ -12,9 +12,4 @@ public class BadRequestException extends RuntimeException {
         this.errorEnums = errorEnums;
     }
 
-    public BadRequestException(ErrorEnums errorEnums, String errorMessage, Throwable e) {
-        super(errorMessage, e);
-        this.errorEnums = errorEnums;
-    }
-
 }

@@ -7,7 +7,6 @@ spring:
     password: mypassword
   jpa:
     hibernate:
-      default_schema: myapp
       ddl-auto: update
     show-sql: true
     properties:

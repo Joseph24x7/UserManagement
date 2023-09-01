@@ -25,7 +25,7 @@ public class LoginController {
 
     @GetMapping("/user-info")
     public UserEntity saveUserInfo(Authentication authentication, @RequestParam String role) {
-        LoginRequest loginRequest = getValidatedLoginRequest((String) authentication.getCredentials(), role);
+        LoginRequest loginRequest = getValidatedLoginRequest(String.valueOf(authentication.getCredentials()), role);
         return loginService.saveUserInfo(loginRequest, CommonUtil.LOGIN_WITH_GOOGLE_OAUTH_2);
     }
 

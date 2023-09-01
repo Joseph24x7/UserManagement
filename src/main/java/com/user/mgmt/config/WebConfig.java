@@ -22,7 +22,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
-
     @Bean
     public Validator validator() {
         return new LocalValidatorFactoryBean();

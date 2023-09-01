@@ -29,9 +29,6 @@ public class IntegrationTestBase {
                 .withExposedPorts(6379);
 
         private static final PostgreSQLContainer<?> postgresqlContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
-                .withDatabaseName("myuser")
-                .withUsername("myuser")
-                .withPassword("password")
                 .withInitScript("init.sql");
 
         public static Map<String, Supplier<Object>> initialize() {

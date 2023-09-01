@@ -6,40 +6,44 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.ResponseEntity;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RedisControllerIT extends IntegrationTestBase {
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private WebTestClient webTestClient;
     private final String key = "testKey";
     private final String value = "testValue";
 
     @Test
     @Order(0)
     public void testCreate() {
-        ResponseEntity<String> createResponse = restTemplate.postForEntity("/redis/create?key=" + key + "&value=" + value, null, String.class);
-        assertEquals(200, createResponse.getStatusCode().value());
+        webTestClient.post()
+                .uri("/redis/create?key=" + key + "&value=" + value)
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
     @Order(1)
     public void testRead() {
-        ResponseEntity<String> readResponse = restTemplate.getForEntity("/redis/read/" + key, String.class);
-        assertEquals(200, readResponse.getStatusCode().value());
-        assertEquals(value, readResponse.getBody());
+        webTestClient.get()
+                .uri("/redis/read/" + key)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .isEqualTo(value);
     }
 
     @Test
     @Order(2)
     public void testDelete() {
-        restTemplate.postForEntity("/redis/create?key=" + key + "&value=" + value, null, String.class);
-        ResponseEntity<String> deleteResponse = restTemplate.exchange("/redis/delete/" + key, org.springframework.http.HttpMethod.DELETE, null, String.class);
-        assertEquals(200, deleteResponse.getStatusCode().value());
+
+        webTestClient.delete()
+                .uri("/redis/delete/" + key)
+                .exchange()
+                .expectStatus().isOk();
     }
 }

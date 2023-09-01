@@ -12,9 +12,4 @@ public class UnAuthorizedException extends RuntimeException {
         this.errorEnums = errorEnums;
     }
 
-    public UnAuthorizedException(ErrorEnums errorEnums, String errorMessage, Throwable e) {
-        super(errorMessage, e);
-        this.errorEnums = errorEnums;
-    }
-
 }

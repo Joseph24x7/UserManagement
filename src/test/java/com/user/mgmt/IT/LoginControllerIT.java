@@ -10,21 +10,17 @@ import com.user.mgmt.request.VerifyEmailRequest;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.net.URI;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class LoginControllerIT extends IntegrationTestBase {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    private static String verifyResponse;
 
     @Autowired
     private UserInfoRepository userInfoRepository;
@@ -33,12 +29,11 @@ public class LoginControllerIT extends IntegrationTestBase {
     private static final String TEST_ROLE = "seller";
 
     private static UserEntity userEntity;
-    private static HttpHeaders httpHeaders;
-    private static ResponseEntity<String> verifyResponse;
+    @Autowired
+    private WebTestClient webTestClient;
 
     @BeforeAll
     public static void setupClass() {
-        httpHeaders = new HttpHeaders();
     }
 
     @Test
@@ -48,8 +43,13 @@ public class LoginControllerIT extends IntegrationTestBase {
         emailRequest.setEmail(TEST_EMAIL);
         emailRequest.setRole(TEST_ROLE);
 
-        ResponseEntity<String> createResponse = restTemplate.postForEntity("/login-with-access-code", emailRequest, String.class);
-        assertEquals(HttpStatus.OK, createResponse.getStatusCode());
+        webTestClient.post()
+                .uri("/login-with-access-code")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(emailRequest)
+                .exchange()
+                .expectStatus().isOk();
+
     }
 
     @Test
@@ -61,22 +61,31 @@ public class LoginControllerIT extends IntegrationTestBase {
         verifyRequest.setEmail(TEST_EMAIL);
         verifyRequest.setAccessCode(String.valueOf(userEntity.getOtp()));
 
-        verifyResponse = restTemplate.postForEntity("/verify-access-code", verifyRequest, String.class);
-        assertEquals(HttpStatus.OK, verifyResponse.getStatusCode());
-        assertNotNull(verifyResponse.getBody());
+        verifyResponse = webTestClient.post()
+                .uri("/verify-access-code")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(verifyRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(Assertions::assertNotNull)
+                .returnResult().getResponseBody();
+
     }
 
     @Test
     @Order(2)
     public void testUserInfo() {
-        httpHeaders.add(HttpHeaders.AUTHORIZATION, verifyResponse.getBody());
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/user-info").queryParam("role", "seller");
-        URI uri = builder.build().toUri();
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/user-info")
+                        .queryParam("role", "seller")
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, verifyResponse)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk();
 
-        HttpEntity<?> userInfoEntity = new HttpEntity<>(httpHeaders);
-        ResponseEntity<String> userInfoResponse = restTemplate.exchange(uri, HttpMethod.GET, userInfoEntity, String.class);
-        assertEquals(HttpStatus.OK, userInfoResponse.getStatusCode());
     }
 
     @Test
@@ -87,11 +96,18 @@ public class LoginControllerIT extends IntegrationTestBase {
         myProfileRequest.setCity("Chennai");
         myProfileRequest.setUsername("Joseph123");
 
-        HttpEntity<?> updateInfoEntity = new HttpEntity<>(myProfileRequest, httpHeaders);
-        ResponseEntity<UserEntity> updateEntityResponse = restTemplate.exchange("/update-user-info", HttpMethod.PUT, updateInfoEntity, UserEntity.class);
+        webTestClient.put()
+                .uri("/update-user-info")
+                .header(HttpHeaders.AUTHORIZATION, verifyResponse)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(myProfileRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(UserEntity.class)
+                .value(updatedUserEntity -> {
+                    userEntity = userInfoRepository.findByEmail(TEST_EMAIL).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
+                    assertEquals(userEntity, updatedUserEntity);
+                });
 
-        userEntity = userInfoRepository.findByEmail(TEST_EMAIL).orElseThrow(() -> new BadRequestException(ErrorEnums.USER_NOT_FOUND));
-        assertEquals(HttpStatus.OK, updateEntityResponse.getStatusCode());
-        assertEquals(userEntity, updateEntityResponse.getBody());
     }
 }
