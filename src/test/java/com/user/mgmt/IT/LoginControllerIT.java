@@ -12,7 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -65,10 +70,12 @@ public class LoginControllerIT extends IntegrationTestBase {
     @Order(2)
     public void testUserInfo() {
         httpHeaders.add(HttpHeaders.AUTHORIZATION, verifyResponse.getBody());
-        httpHeaders.add("X-BookMyGift-Role", TEST_ROLE);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/user-info").queryParam("role", "seller");
+        URI uri = builder.build().toUri();
 
         HttpEntity<?> userInfoEntity = new HttpEntity<>(httpHeaders);
-        ResponseEntity<String> userInfoResponse = restTemplate.exchange("/user-info", HttpMethod.GET, userInfoEntity, String.class);
+        ResponseEntity<String> userInfoResponse = restTemplate.exchange(uri, HttpMethod.GET, userInfoEntity, String.class);
         assertEquals(HttpStatus.OK, userInfoResponse.getStatusCode());
     }
 

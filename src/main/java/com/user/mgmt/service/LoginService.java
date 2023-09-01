@@ -10,7 +10,6 @@ import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.request.VerifyEmailRequest;
 import com.user.mgmt.util.CommonUtil;
 import com.user.mgmt.util.TokenUtil;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +26,7 @@ public class LoginService {
     private final TokenUtil tokenUtil;
     private final MyProfileMapper myProfileMapper = MyProfileMapper.INSTANCE;
 
-    public UserEntity saveUserInfo(@Valid LoginRequest loginRequest, String actionType) {
+    public UserEntity saveUserInfo(LoginRequest loginRequest, String actionType) {
 
         String email = loginRequest.getEmail();
         Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(email);
@@ -52,10 +51,8 @@ public class LoginService {
 
     }
 
-    public UserEntity updateUserInfo(MyProfileRequest myProfileRequest, String email) {
-
-        Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(email);
-
+    public UserEntity updateUserInfo(MyProfileRequest myProfileRequest) {
+        Optional<UserEntity> optionalGoogleUserEntity = userInfoRepository.findByEmail(myProfileRequest.getEmail());
         if (optionalGoogleUserEntity.isPresent()) {
             UserEntity userEntity = optionalGoogleUserEntity.get();
             myProfileMapper.updateUserEntity(myProfileRequest, userEntity);

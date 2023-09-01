@@ -6,12 +6,12 @@ import com.user.mgmt.request.MyProfileRequest;
 import com.user.mgmt.request.VerifyEmailRequest;
 import com.user.mgmt.service.LoginService;
 import com.user.mgmt.util.CommonUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -24,8 +24,8 @@ public class LoginController {
     private final Validator validator;
 
     @GetMapping("/user-info")
-    public UserEntity saveUserInfo(HttpServletRequest httpServletRequest) {
-        LoginRequest loginRequest = getValidatedLoginRequest(httpServletRequest);
+    public UserEntity saveUserInfo(Authentication authentication, @RequestParam String role) {
+        LoginRequest loginRequest = getValidatedLoginRequest((String) authentication.getCredentials(), role);
         return loginService.saveUserInfo(loginRequest, CommonUtil.LOGIN_WITH_GOOGLE_OAUTH_2);
     }
 
@@ -35,8 +35,8 @@ public class LoginController {
     }
 
     @PutMapping("/update-user-info")
-    public UserEntity saveUserInfo(@RequestBody @Valid MyProfileRequest myProfileRequest, HttpServletRequest httpServletRequest) {
-        return loginService.updateUserInfo(myProfileRequest, String.valueOf(httpServletRequest.getAttribute("email")));
+    public UserEntity saveUserInfo(@RequestBody @Valid MyProfileRequest myProfileRequest) {
+        return loginService.updateUserInfo(myProfileRequest);
     }
 
 
@@ -45,11 +45,10 @@ public class LoginController {
         return loginService.verifyAccessCode(emailRequest);
     }
 
-    private LoginRequest getValidatedLoginRequest(HttpServletRequest httpServletRequest) {
-        LoginRequest loginRequest = new LoginRequest((String) httpServletRequest.getAttribute("email"), (String) httpServletRequest.getAttribute("role"));
+    private LoginRequest getValidatedLoginRequest(String email, String role) {
+        LoginRequest loginRequest = new LoginRequest(email, role);
         Set<ConstraintViolation<Object>> violations = validator.validate(loginRequest);
-        if (!violations.isEmpty())
-            throw new ConstraintViolationException(violations);
+        if (!violations.isEmpty()) throw new ConstraintViolationException(violations);
         return loginRequest;
     }
 }
