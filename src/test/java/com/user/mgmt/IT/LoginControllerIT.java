@@ -26,7 +26,7 @@ public class LoginControllerIT extends IntegrationTestBase {
     private UserInfoRepository userInfoRepository;
 
     private static final String TEST_EMAIL = "abc@gmail.com";
-    private static final String TEST_ROLE = "seller";
+    private static final String TEST_ROLE = "SELLER";
 
     private static UserEntity userEntity;
     @Autowired
@@ -79,7 +79,7 @@ public class LoginControllerIT extends IntegrationTestBase {
 
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/user-info")
-                        .queryParam("role", "seller")
+                        .queryParam("role", TEST_ROLE)
                         .build())
                 .header(HttpHeaders.AUTHORIZATION, verifyResponse)
                 .accept(MediaType.APPLICATION_JSON)

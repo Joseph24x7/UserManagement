@@ -26,7 +26,8 @@ public class UserEntity implements Serializable {
     private String email;
 
     @Column(name = "role")
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private RoleEnum role;
 
     @Column(name = "registered_on")
     private LocalDateTime registeredOn;

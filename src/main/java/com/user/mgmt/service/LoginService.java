@@ -1,5 +1,6 @@
 package com.user.mgmt.service;
 
+import com.user.mgmt.entity.RoleEnum;
 import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.exception.BadRequestException;
 import com.user.mgmt.exception.ErrorEnums;
@@ -37,7 +38,7 @@ public class LoginService {
         } else {
             userEntity = new UserEntity();
             userEntity.setEmail(email);
-            userEntity.setRole(loginRequest.getRole());
+            userEntity.setRole(RoleEnum.valueOf(loginRequest.getRole().toUpperCase()));
             userEntity.setRegisteredOn(LocalDateTime.now());
         }
 
