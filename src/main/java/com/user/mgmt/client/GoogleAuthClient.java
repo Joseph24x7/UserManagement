@@ -1,4 +1,4 @@
-package com.user.mgmt.service;
+package com.user.mgmt.client;
 
 import com.user.mgmt.entity.UserEntity;
 import org.springframework.stereotype.Service;
@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
-public class GoogleAuthService {
+public class GoogleAuthClient {
 
     public UserEntity getUserInfo(String accessToken) {
 
