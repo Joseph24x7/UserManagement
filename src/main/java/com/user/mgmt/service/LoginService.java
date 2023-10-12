@@ -1,5 +1,6 @@
 package com.user.mgmt.service;
 
+import com.user.mgmt.entity.AddressEntity;
 import com.user.mgmt.entity.RoleEnum;
 import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.exception.BadRequestException;
@@ -14,7 +15,7 @@ import com.user.mgmt.util.TokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
@@ -39,7 +40,6 @@ public class LoginService {
             userEntity = new UserEntity();
             userEntity.setEmail(email);
             userEntity.setRole(RoleEnum.valueOf(loginRequest.getRole().toUpperCase()));
-            userEntity.setRegisteredOn(LocalDateTime.now());
         }
 
         if (CommonUtil.LOGIN_WITH_ACCESS_CODE.equalsIgnoreCase(actionType)) {
@@ -47,7 +47,6 @@ public class LoginService {
             emailService.sendOtpEmail(email, userEntity.getOtp());
         }
 
-        userEntity.setRecentLogin(LocalDateTime.now());
         return userInfoRepository.save(userEntity);
 
     }
@@ -57,6 +56,14 @@ public class LoginService {
         if (optionalGoogleUserEntity.isPresent()) {
             UserEntity userEntity = optionalGoogleUserEntity.get();
             myProfileMapper.updateUserEntity(myProfileRequest, userEntity);
+
+            if (Objects.nonNull(userEntity.getAddress())) {
+                myProfileMapper.updateAddressEntity(myProfileRequest, userEntity.getAddress());
+            } else {
+                AddressEntity addressEntity = myProfileMapper.updateAddressEntity(myProfileRequest, new AddressEntity());
+                userEntity.setAddress(addressEntity);
+            }
+
             return userInfoRepository.save(userEntity);
         } else {
             throw new BadRequestException(ErrorEnums.USER_NOT_FOUND);

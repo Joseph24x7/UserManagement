@@ -2,6 +2,8 @@ package com.user.mgmt.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -30,9 +32,11 @@ public class UserEntity implements Serializable {
     private RoleEnum role;
 
     @Column(name = "registered_on")
+    @CreationTimestamp
     private LocalDateTime registeredOn;
 
     @Column(name = "recent_login")
+    @UpdateTimestamp
     private LocalDateTime recentLogin;
 
     @Column(name = "mobile")
@@ -44,22 +48,8 @@ public class UserEntity implements Serializable {
     @Column(name = "otp")
     private Integer otp;
 
-    @Column(name = "address_line1")
-    private String addressLine1;
-
-    @Column(name = "address_line2")
-    private String addressLine2;
-
-    @Column(name = "postal_code")
-    private String postalCode;
-
-    @Column(name = "city")
-    private String city;
-
-    @Column(name = "state")
-    private String state;
-
-    @Column(name = "landmark")
-    private String landmark;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "addressId")
+    private AddressEntity address;
 
 }

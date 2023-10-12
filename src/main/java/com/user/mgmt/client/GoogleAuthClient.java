@@ -1,16 +1,16 @@
 package com.user.mgmt.client;
 
 import com.user.mgmt.entity.UserEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-@Service
+@Component
 public class GoogleAuthClient {
 
-    public UserEntity getUserInfo(String accessToken) {
+    private final WebClient webClient = WebClient.create("https://www.googleapis.com/oauth2/v3/userinfo");
 
-        WebClient webClient = WebClient.create("https://www.googleapis.com/oauth2/v3/userinfo");
+    public UserEntity getUserInfo(String accessToken) {
 
         Mono<UserEntity> userInfoMono = webClient.get()
                 .uri(uriBuilder -> uriBuilder.queryParam("access_token", accessToken).build())

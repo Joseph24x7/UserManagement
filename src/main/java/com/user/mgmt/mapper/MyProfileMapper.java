@@ -1,5 +1,6 @@
 package com.user.mgmt.mapper;
 
+import com.user.mgmt.entity.AddressEntity;
 import com.user.mgmt.entity.UserEntity;
 import com.user.mgmt.request.MyProfileRequest;
 import org.mapstruct.Mapper;
@@ -14,5 +15,8 @@ public interface MyProfileMapper {
 
     @Mapping( target = "UserEntity.email", ignore = true )
     void updateUserEntity(MyProfileRequest request, @MappingTarget UserEntity userEntity);
+
+    @Mapping(target = "AddressEntity.addressLine1", ignore = true)
+    AddressEntity updateAddressEntity(MyProfileRequest request, @MappingTarget AddressEntity addressEntity);
 
 }
